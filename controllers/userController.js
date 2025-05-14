@@ -1,5 +1,6 @@
 const { where } = require("sequelize");
-const {User,Book} = require("../models");
+const {User:userModel,Book:bookModel, Tag:tagModel} = require("../models");
+
 
 const doesEmailExist = async(email)=>{
     const user = await User.findOne({where:{email}});
@@ -65,25 +66,36 @@ const fetchBook = async(req,res)=>{
 // save book to user collection
 
 const saveBookToCollection = async (req, res) => {
+  console.log("saved book in collection")
+  console.log(req.body);
+
   try {
-    const { userId, title, author, thumbnail } = req.body;
+
+        console.log(req.body);
+
+    const { title, author, thumbnail, userId } = req.body;
 
     if (!userId || !title || !author) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const findUser = await User.findByPk(userId);
+    console.log("find user");
+
+    const findUser = await userModel.findByPk(userId);
+    console.log(findUser);
 
     if (!findUser) {
       return res.status(404).json({ message: "User ID is not present!" });
     }
 
-    const savedBook = await Book.create({
-      userId,
+    const savedBook = await bookModel.create({
       title,
       author,
       thumbnail,
+       userId
     });
+
+    console.log("ater savebook");
 
     res.status(201).json({
       message: "Book saved successfully!",
@@ -97,5 +109,47 @@ const saveBookToCollection = async (req, res) => {
 };
 
 
+const addTags = async(req,res)=>{
+ try{
+    const {bookId, name} = req.body;
 
-module.exports = {createUser, fetchBook,saveBookToCollection}
+    const findBookId = await bookModel.findByPk(bookId);
+
+    if(!findBookId){
+      res.status(404).json("BookId is not present");
+    }
+
+    const createTag = await tagModel.create({
+      bookId,
+      name
+    });
+
+  //  const findDuplicateTage = await tagModel.findOne
+
+    res.status(200).json({message:"Tag added successfully",createTag});
+
+ }catch(error){
+  res.status(500).json({message:"Internal Server Error",error:error.message});
+ }
+}
+
+const searchByTag = async(req,res)=>{
+  try{
+    const tagName = req.query.tagName;
+
+
+    const findBookByTag = await tagModel.findByPk(tagName);
+
+    if(!findBookByTag){
+      res.status(400).json("Book not find by tag");
+    }
+
+    res.status(200).json({books: findBookByTag});
+
+  }catch(error){
+    res.status(500).json({message:"Internal Server Error",error:error.message});
+  }
+}
+
+
+module.exports = {createUser, fetchBook,saveBookToCollection,addTags,searchByTag}
