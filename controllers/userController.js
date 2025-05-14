@@ -119,6 +119,12 @@ const addTags = async(req,res)=>{
       res.status(404).json("BookId is not present");
     }
 
+    // check tag already exist
+
+    const existingTag = await tagModel.findOne({
+      where:{bookId,name}
+    })
+
     const createTag = await tagModel.create({
       bookId,
       name
@@ -136,6 +142,10 @@ const addTags = async(req,res)=>{
 const searchByTag = async(req,res)=>{
   try{
     const tagName = req.query.tagName;
+
+    if(!tagName){
+      return res.status(400).json({message:"tagname required!"});
+    }
 
 
     const findBookByTag = await tagModel.findByPk(tagName);
