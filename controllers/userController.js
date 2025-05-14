@@ -108,7 +108,7 @@ const saveBookToCollection = async (req, res) => {
   }
 };
 
-
+// add tags
 const addTags = async(req,res)=>{
  try{
     const {bookId, name} = req.body;
